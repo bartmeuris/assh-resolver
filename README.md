@@ -4,6 +4,8 @@ I use this in combination with [assh](https://github.com/moul/advanced-ssh-confi
 
 Location detection is done by checking the default gateway, for which an external package is used.
 
+## Configuration
+
 The configuration file is looked for here, in the following order:
 
 * The file set in the `ASSH_RESOLVECFG`
@@ -32,7 +34,7 @@ home:
 
 ```
 
-# Configuring ASSH
+## Configuring ASSH
 
 As resolve command you then use the following in the assh config:
 
