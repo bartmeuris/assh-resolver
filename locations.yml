@@ -1,0 +1,17 @@
+---
+test:
+    # No gateway defined, this will be treated as default location
+    short: tst
+
+client1:
+    short: cl1
+    gateway: 10.0.0.1
+
+client2:
+    short: cl2
+    gateway: 172.16.0.1
+
+home:
+    short: h
+    gateway: 192.168.50.254
+
