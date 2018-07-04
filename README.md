@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bartmeuris/assh-resolver.svg?branch=master)](https://travis-ci.org/bartmeuris/assh-resolver)
+
 # Resolve command for ssh
 
 I use this in combination with [assh](https://github.com/moul/advanced-ssh-config) as the `ResolveCommand` to use different IP's to connect to hosts, depending on the location I am.
