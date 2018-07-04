@@ -38,17 +38,17 @@ home:
 
 As resolve command you then use the following in the assh config:
 
-    `ResolveCommand: /path/to/assh-resolver "%h"`
+    ResolveCommand: /path/to/assh-resolver "%h"
 
 As hosts, you then specify all IP/hostnames linked with the location name in the following format:
 
-    `([location|short];)hostname|...`
+    ([location|short];)hostname|...
 
 The last entry without a location defined will be treated as the fallback if the current location could not be detected, or if it was not found in the host list.
 
 Example:
 
-    `cl1;10.0.0.20|home;host.vpn.cl1|public.host.ip:2222`
+    cl1;10.0.0.20|home;host.vpn.cl1|public.host.ip:2222
 
 With the above configuration file example, this will:
 
