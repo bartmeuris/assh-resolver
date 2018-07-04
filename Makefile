@@ -19,14 +19,17 @@ temp = $(subst /, ,$@)
 tos   = $(word 1, $(temp))
 tarch = $(word 2, $(temp))
 ext = $(word 3, $(temp))
+DEBUG = false
 
 # Setup linker flags option for build that interoperate with variable names in src code
-LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
+LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD} -X main.Debug=${DEBUG}"
 
 default: build
 
 all: clean build_all
 
+# Simple build builds debug
+build: DEBUG := true
 build:
 	go build ${LDFLAGS} -o ${BINARY}
 

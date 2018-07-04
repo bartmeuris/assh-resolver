@@ -1,25 +1,35 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"github.com/jackpal/gateway"
 	"gopkg.in/yaml.v2"
-	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"strings"
 )
 
+var Version string
+var Build string
+var Debug string
+
+const EnvVarName = "ASSH_RESOLVECFG"
+const ConfigFileName = "locations.yml"
+
+
 type Location struct {
 	Gateway string
-	Short string
-	Name string `yaml:"omitempty"`
+	Short   string
+	Name    string `yaml:"omitempty"`
 }
 
 func checkError(err error, format string, a ...interface{}) {
 	if err == nil {
 		return
 	}
-	if format != ""{
+	if format != "" {
 		fmt.Printf(format, a)
 	}
 	fmt.Printf("Error: %s\n", err)
@@ -39,7 +49,7 @@ func findLocation(configfile string) Location {
 	checkError(err, "Could not get default gateway")
 
 	gws := fmt.Sprintf("%s", gw)
-	def_return := Location{Short:"default", Name:"", Gateway:""}
+	def_return := Location{Short: "default", Name: "", Gateway: ""}
 	for s := range locs {
 		if locs[s].Gateway == gws {
 			locs[s].Name = s
@@ -54,15 +64,48 @@ func findLocation(configfile string) Location {
 	return def_return
 }
 
-func main() {
-	location := findLocation("locations.yml")
-	//fmt.Printf("Location: %v\n", location)
+func fileReadable(name string) bool {
+	if f, err := os.Open(name); err != nil {
+		return false
+	} else if err = f.Close(); err != nil {
+		return false
+	}
+	return true
+}
+
+func defaultConfigFile() string {
+	val, ok := os.LookupEnv(EnvVarName)
+	if ok && fileReadable(val) {
+		return val
+	}
+    if usr, err := user.Current(); err == nil {
+		fn := fmt.Sprintf("%s%c%s%c%s", usr.HomeDir, os.PathSeparator, ".ssh", os.PathSeparator, ConfigFileName)
+		if fileReadable(fn) {
+			return fn
+		}
+	}
 	
+	// Only try to open the config file in current directory in debug builds
+	if Debug == "true" && fileReadable(ConfigFileName) {
+		return ConfigFileName
+	}
+	return ""
+}
+
+func main() {
+
+	configfile := flag.String("configfile", defaultConfigFile(), "path to the yaml configuration file")
+	flag.Parse()
+
+	location := findLocation(*configfile)
+
+	//fmt.Printf("Location: %v\n", location)
+
 	if len(os.Args) < 2 {
 		checkError(fmt.Errorf("Expected 1 argument, got %d", len(os.Args)-1), "")
 	}
 	ips := strings.Split(os.Args[1], "|")
-	
+
 	def_host := ""
 	host := ""
 	for s := range ips {
