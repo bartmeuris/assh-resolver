@@ -4,7 +4,7 @@
 # ########################################################## #
 
 # Check for required command tools to build or stop immediately
-EXECUTABLES = git go find pwd
+EXECUTABLES = git go find pwd dep
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(error "No $(exec) in PATH)))
 
@@ -28,6 +28,9 @@ default: build
 
 all: clean build_all
 
+deps:
+	dep ensure
+
 # Simple build builds debug
 build: DEBUG := true
 build:
@@ -35,7 +38,7 @@ build:
 
 build_all: $(PLATFORMS)
 
-$(PLATFORMS):
+$(PLATFORMS): deps
 	CGO_ENABLED=0 GOOS=$(tos) GOARCH=$(tarch) go build $(LDFLAGS) -o '$(BINARY)_$(tos)-$(tarch)$(ext)'
 
 install:
