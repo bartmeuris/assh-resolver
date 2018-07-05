@@ -40,7 +40,7 @@ home:
 
 As resolve command you then use the following in the assh config:
 
-    ResolveCommand: /path/to/assh-resolver "%h"
+    ResolveCommand: ResolveCommand: '/path/to/assh-resolver "%h"'
 
 As hosts, you then specify all IP/hostnames linked with the location name in the following format:
 
