@@ -3,65 +3,110 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/jackpal/gateway"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/user"
+	"strconv"
 	"strings"
+
+	"github.com/jackpal/gateway"
+	"gopkg.in/yaml.v2"
 )
 
+// Version is set by the build process to contain the version of the application
 var Version string
-var Build string
-var Debug string
 
+// Build is set by the build process to contain the git hash of the compiled program
+var Build string
+
+// Debug is a string set by the build process to indicate debug builds
+var Debug string
+var debugBool bool
+
+// EnvVarName is the name of the environment variable that is consulted to locate the configuration yaml file
 const EnvVarName = "ASSH_RESOLVECFG"
+
+// ConfigFileName is the filename that is searched for in in the ~/.ssh folder
 const ConfigFileName = "locations.yml"
 
+// HostSeparator is the separator used to split the incoming host argument locations
+const HostSeparator = "|"
 
+// LocationSeparator is the separator used to split the location/host
+const LocationSeparator = ";"
+
+// Location contains the structure used to parse the YAML config file
 type Location struct {
 	Gateway string
 	Short   string
 	Name    string `yaml:"omitempty"`
 }
 
+func (l *Location) String() string {
+	return fmt.Sprintf("%s (%s) with gateway %s", l.Name, l.Short, l.Gateway)
+}
 func checkError(err error, format string, a ...interface{}) {
 	if err == nil {
 		return
 	}
 	if format != "" {
-		fmt.Printf(format, a)
+		fmt.Fprintf(os.Stderr, format, a...)
 	}
-	fmt.Printf("Error: %s\n", err)
+	fmt.Fprintf(os.Stderr, "Error: %s\n\n", err)
+	flag.PrintDefaults()
 	os.Exit(1)
 }
 
-func findLocation(configfile string) Location {
+func debug(format string, a ...interface{}) {
+	if debugBool {
+		fmt.Fprintf(os.Stderr, format, a...)
+		if !strings.Contains(format, "\n") {
+			fmt.Fprint(os.Stderr, "\n")
+		}
+	}
+}
+
+func findLocation(configfile string) (*Location, error) {
 	var locs map[string]*Location
 
 	cdata, err := ioutil.ReadFile(configfile)
-	checkError(err, "Could not read %s file", configfile)
+	if err != nil {
+		debug("  Could not read config file '%s': %s", configfile, err)
+		return nil, err
+	}
 
 	err = yaml.Unmarshal(cdata, &locs)
-	checkError(err, "Configuration file in wrong format")
+	if err != nil {
+		debug("  Could not parse config file '%s': %s", configfile, err)
+		return nil, err
+	}
 
 	gw, err := gateway.DiscoverGateway()
-	checkError(err, "Could not get default gateway")
-
+	if err != nil {
+		debug("  Could not find default gateway: %s", err)
+		return nil, err
+	}
 	gws := fmt.Sprintf("%s", gw)
-	def_return := Location{Short: "default", Name: "", Gateway: ""}
+	debug("  Detected Gateway: %s\n", gws)
+
+	defReturn := &Location{Short: "default", Name: "", Gateway: ""}
 	for s := range locs {
-		if locs[s].Gateway == gws {
+		if locs[s].Name == "" {
+			// Don't set name if it was overridden in the config file
 			locs[s].Name = s
-			return *locs[s]
+		}
+		if locs[s].Gateway == gws {
+			debug("  Found matching location: %s", locs[s])
+			return locs[s], nil
 		}
 		// No gateway defined -> this is the default entry
 		if locs[s].Gateway == "" {
-			def_return = *locs[s]
+			debug("  Encountered location without gateway, setting as default location: %s (%s)", s, locs[s].Short)
+			defReturn = locs[s]
 		}
 	}
 
-	return def_return
+	return defReturn, nil
 }
 
 func fileReadable(name string) bool {
@@ -74,66 +119,84 @@ func fileReadable(name string) bool {
 }
 
 func defaultConfigFile() string {
+	// Only try to open the config file in current directory in debug builds
+	if debugBool && fileReadable(ConfigFileName) {
+		return ConfigFileName
+	}
+
 	val, ok := os.LookupEnv(EnvVarName)
 	if ok && fileReadable(val) {
 		return val
 	}
-    if usr, err := user.Current(); err == nil {
+	if usr, err := user.Current(); err == nil {
 		fn := fmt.Sprintf("%s%c%s%c%s", usr.HomeDir, os.PathSeparator, ".ssh", os.PathSeparator, ConfigFileName)
 		if fileReadable(fn) {
 			return fn
 		}
 	}
-	
-	// Only try to open the config file in current directory in debug builds
-	if Debug == "true" && fileReadable(ConfigFileName) {
-		return ConfigFileName
-	}
+
 	return ""
 }
 
-func main() {
+func getLocIP(loc Location, hoststring string) (string, error) {
+	ips := strings.Split(hoststring, HostSeparator)
 
-	configfile := flag.String("configfile", defaultConfigFile(), "path to the yaml configuration file")
-	flag.Parse()
-
-	location := findLocation(*configfile)
-
-	//fmt.Printf("Location: %v\n", location)
-
-	if len(os.Args) < 2 {
-		checkError(fmt.Errorf("Expected 1 argument, got %d", len(os.Args)-1), "")
-	}
-	ips := strings.Split(os.Args[1], "|")
-
-	def_host := ""
+	defHost := ""
 	host := ""
 	for s := range ips {
 		//fmt.Printf("s: %s\n", ips[s])
-		if cpos := strings.Index(ips[s], ";"); cpos == -1 {
+		if cpos := strings.Index(ips[s], LocationSeparator); cpos == -1 {
 			// This is an entry without a name, this is the default host
-			def_host = ips[s]
-			//fmt.Printf("Default host: %s\n", def_host)
+			defHost = ips[s]
+			//fmt.Printf("Default host: %s\n", defHost)
 		} else {
-			h_loc := ips[s][:cpos]
-			h_host := ips[s][cpos+1:]
-			if def_host == "" {
+			hLoc := ips[s][:cpos]
+			hHost := ips[s][cpos+1:]
+			if defHost == "" {
 				// Set the first entry as default host
-				def_host = h_host
+				defHost = hHost
 			}
-			if h_loc == location.Name || h_loc == location.Short {
-				//fmt.Printf("Found match: %s: %s\n", h_loc, h_host)
+			if hLoc == loc.Name || hLoc == loc.Short {
+				//fmt.Printf("Found match: %s: %s\n", hLoc, hHost)
 				if host != "" {
-					checkError(fmt.Errorf("ERROR: Multiple matching hosts found"), "")
+					return "", fmt.Errorf("ERROR: Multiple matching hosts found")
 				}
-				host = h_host
+				host = hHost
 			}
-			//fmt.Printf("Location: %s / Host: %s\n", h_loc, h_host)
+			//fmt.Printf("Location: %s / Host: %s\n", hLoc, hHost)
 		}
 	}
 	if host == "" {
-		//fmt.Printf("Host empty, fallback to default %s\n", def_host)
-		host = def_host
+		//fmt.Printf("Host empty, fallback to default %s\n", defHost)
+		host = defHost
 	}
+	return host, nil
+}
+
+func main() {
+	var err error
+	debugBool, err = strconv.ParseBool(Debug)
+
+	configfile := flag.String("configfile", "", "path to the yaml configuration file")
+	flag.BoolVar(&debugBool, "debug", debugBool, "Output debug info to stderr")
+	flag.Parse()
+
+	if *configfile == "" {
+		*configfile = defaultConfigFile()
+	}
+	if *configfile == "" || !fileReadable(*configfile) {
+		checkError(fmt.Errorf("Could not read configuration file '%s'", *configfile), "")
+	}
+	debug("Using config file '%s'", *configfile)
+	location, err := findLocation(*configfile)
+	checkError(err, "Could not find location")
+	debug("Detected location: %s", location)
+
+	if len(flag.Args()) != 1 {
+		checkError(fmt.Errorf("Expected 1 argument, got %d", len(flag.Args())), "")
+	}
+
+	host, err := getLocIP(*location, flag.Args()[0])
+	checkError(err, "")
 	fmt.Printf("%s\n", host)
 }
