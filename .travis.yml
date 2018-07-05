@@ -7,10 +7,12 @@ before_install:
 - dep ensure
 script:
 - make all
-#deploy:
-#  provider: releases
-#  api_key:
-#    secure: YSwS68Zvkw0TqylZnR9TDcBoF+5hl6hszMeHXA0Gu1UY17unRRP/tzzXA8j2wFi0EBRJk++8moirOyK9RLg/rmEmwBTN+hUH+4lMdNRLbUf2fkTVEEioxZG8zgkuE5qbc1k1H+n9r6qkCIcyKJ2FKMgJW+QFN/S1ild4xQ7r9aiaq9UYek3VFHCUtdDIw9+x8mjshK3JeeTpU/vbKxvYMpftH6Rl8tl4Xy26t3glkuwXbZoom0qXOU89Tm9USsNyEZP0fDlqTS8SZ76QISlgMk78a4wmpiQIY3TFaUlZ62JfD5UuDqvcOmQ7OSbansHYAi1eVerUj7bXc5powrDOY+pS+YITBrCTGnDpNhd7R8ZeRNqs4ef6CK79TyWmGDnti0UucEs90eL+UKBE0vF8FrFOjgWI1V+2iHNJs+gHdG3JLnTBEzNDVqmI3QQHDAx3bgrVE+MePgPg2D8oEWEA/kaESgCUTobPG0ykvoQJAe40p5wIv5ycBfffJNa4YYuj6ccf2C3v07GAkiGEx+F2mxUwLxB69jXkehiLCUDqjfTCvA4U0D9VpwjOxbry7lfMPyYxZ2wQnmcOnDI49qkNvfihn551Z7UCJ9zJzj3Vv4MxdSKAzjpGD1AhdWNGvWphqDOOFHa+ujcGfUwxbuSD23kQobO53qrBTF+g4HYbTe0=
-#  file: assh-resolver_*
-#  on:
-#    repo: bartmeuris/assh-resolver
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: YSwS68Zvkw0TqylZnR9TDcBoF+5hl6hszMeHXA0Gu1UY17unRRP/tzzXA8j2wFi0EBRJk++8moirOyK9RLg/rmEmwBTN+hUH+4lMdNRLbUf2fkTVEEioxZG8zgkuE5qbc1k1H+n9r6qkCIcyKJ2FKMgJW+QFN/S1ild4xQ7r9aiaq9UYek3VFHCUtdDIw9+x8mjshK3JeeTpU/vbKxvYMpftH6Rl8tl4Xy26t3glkuwXbZoom0qXOU89Tm9USsNyEZP0fDlqTS8SZ76QISlgMk78a4wmpiQIY3TFaUlZ62JfD5UuDqvcOmQ7OSbansHYAi1eVerUj7bXc5powrDOY+pS+YITBrCTGnDpNhd7R8ZeRNqs4ef6CK79TyWmGDnti0UucEs90eL+UKBE0vF8FrFOjgWI1V+2iHNJs+gHdG3JLnTBEzNDVqmI3QQHDAx3bgrVE+MePgPg2D8oEWEA/kaESgCUTobPG0ykvoQJAe40p5wIv5ycBfffJNa4YYuj6ccf2C3v07GAkiGEx+F2mxUwLxB69jXkehiLCUDqjfTCvA4U0D9VpwjOxbry7lfMPyYxZ2wQnmcOnDI49qkNvfihn551Z7UCJ9zJzj3Vv4MxdSKAzjpGD1AhdWNGvWphqDOOFHa+ujcGfUwxbuSD23kQobO53qrBTF+g4HYbTe0=
+  file: assh-resolver_*
+  on:
+    tags: true
+    repo: bartmeuris/assh-resolver
