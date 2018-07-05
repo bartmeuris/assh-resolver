@@ -53,7 +53,7 @@ func checkError(err error, format string, a ...interface{}) {
 		fmt.Fprintf(os.Stderr, format, a...)
 	}
 	fmt.Fprintf(os.Stderr, "Error: %s\n\n", err)
-	flag.PrintDefaults()
+	flag.Usage()
 	os.Exit(1)
 }
 
@@ -175,6 +175,12 @@ func getLocIP(loc Location, hoststring string) (string, error) {
 
 func main() {
 	var err error
+	flag.CommandLine.SetOutput(os.Stderr)
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
 	debugBool, err = strconv.ParseBool(Debug)
 
 	configfile := flag.String("configfile", "", "path to the yaml configuration file")
