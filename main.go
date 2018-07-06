@@ -35,6 +35,9 @@ const HostSeparator = "|"
 // LocationSeparator is the separator used to split the location/host
 const LocationSeparator = ";"
 
+const usageText = `
+`
+
 // Location contains the structure used to parse the YAML config file
 type Location struct {
 	Gateway string
@@ -178,6 +181,8 @@ func main() {
 	flag.CommandLine.SetOutput(os.Stderr)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		fmt.Fprint(flag.CommandLine.Output(), usageText)
+
 		flag.PrintDefaults()
 	}
 
