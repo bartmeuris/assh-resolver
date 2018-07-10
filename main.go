@@ -178,15 +178,19 @@ func getLocIP(loc Location, hoststring string) (string, error) {
 
 func main() {
 	var err error
+	debugBool, err = strconv.ParseBool(Debug)
+
 	flag.CommandLine.SetOutput(os.Stderr)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		if debugBool {
+			fmt.Fprintf(flag.CommandLine.Output(), "Version %s (git:%s) (DEBUG BUILD)", Version, Build)
+		} else {
+			fmt.Fprintf(flag.CommandLine.Output(), "Version %s (git:%s)", Version, Build)
+		}
 		fmt.Fprint(flag.CommandLine.Output(), usageText)
-
 		flag.PrintDefaults()
 	}
-
-	debugBool, err = strconv.ParseBool(Debug)
 
 	configfile := flag.String("configfile", "", "path to the yaml configuration file")
 	flag.BoolVar(&debugBool, "debug", debugBool, "Output debug info to stderr")
