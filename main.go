@@ -99,7 +99,7 @@ func findLocation(configfile string) (*Location, error) {
 			locs[s].Name = s
 		}
 		if locs[s].Gateway == gws {
-			debug("  Found matching location: %s", locs[s])
+			debug("  Found matching location: %s", locs[s].Name)
 			return locs[s], nil
 		}
 		// No gateway defined -> this is the default entry
