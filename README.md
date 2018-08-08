@@ -2,7 +2,7 @@
 
 # Resolve command for ssh
 
-I use this in combination with [assh](https://github.com/moul/advanced-ssh-config) as the `ResolveCommand` to use different IP's to connect to hosts, depending on the location I am.
+I use this in combination with [assh](https://github.com/moul/advanced-ssh-config) as the `ResolveCommand` to use different IP's to connect to hosts, depending on the location I am to speed up connecting to a host when a possible jump-host must be used.
 
 Location detection is done by checking the default gateway, for which an external package is used.
 
@@ -58,4 +58,14 @@ With the above configuration file example, this will:
 * use `host.vpn.cl1` when the `home` location is detected
 * if the location was neither `home` or `client1`, `public.host.ip:2222` is used.
 
+You can also do this to specify jump-hosts in assh:
+
+    cl1;10.0.0.20|cl1jumphost/10.0.0.20
+
+This would:
+
+* use `10.0.0.20` when the `client1` location is detected
+* All other locations would use the "cl1jumphost" as gateway to connect to 10.0.0.20
+
+This speeds up the connection speed so assh doesn't have to attempt methods that won't work, or would be inefficient.
 
