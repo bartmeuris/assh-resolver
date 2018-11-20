@@ -2,20 +2,27 @@
 
 
 [[projects]]
+  digest = "1:6b8866cc9496eada254debc24199981e21fd70fd0031ff7a581ac91be47187bb"
   name = "github.com/jackpal/gateway"
   packages = ["."]
+  pruneopts = "UT"
   revision = "3e333950771011fed13be63e62b9f473c5e0d9bf"
   version = "v1.0.4"
 
 [[projects]]
+  digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
+  pruneopts = "UT"
   revision = "5420a8b6744d3b0345ab293f6fcba19c978f1183"
   version = "v2.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a0fc99e2eda41e5127fc5e70e82d908d61e65a61e1612362662e7547fe148f5"
+  input-imports = [
+    "github.com/jackpal/gateway",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

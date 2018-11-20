@@ -11,7 +11,7 @@ K := $(foreach exec,$(EXECUTABLES),\
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 BINARY=assh-resolver
-VERSION=0.0.1
+VERSION=0.0.2
 BUILD=`git rev-parse HEAD`
 
 PLATFORMS := linux/amd64 windows/amd64/.exe windows/386/.exe darwin/amd64 darwin/386

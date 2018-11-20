@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/jackpal/gateway"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // Version is set by the build process to contain the version of the application
@@ -71,28 +71,28 @@ func debug(format string, a ...interface{}) {
 
 func findLocation(configfile string) (*Location, error) {
 	var locs map[string]*Location
+	defReturn := &Location{Short: "default", Name: "", Gateway: ""}
 
 	cdata, err := ioutil.ReadFile(configfile)
 	if err != nil {
 		debug("  Could not read config file '%s': %s", configfile, err)
-		return nil, err
+		return defReturn, err
 	}
 
 	err = yaml.Unmarshal(cdata, &locs)
 	if err != nil {
 		debug("  Could not parse config file '%s': %s", configfile, err)
-		return nil, err
+		return defReturn, err
 	}
 
 	gw, err := gateway.DiscoverGateway()
 	if err != nil {
 		debug("  Could not find default gateway: %s", err)
-		return nil, err
+		return defReturn, err
 	}
 	gws := fmt.Sprintf("%s", gw)
 	debug("  Detected Gateway: %s\n", gws)
 
-	defReturn := &Location{Short: "default", Name: "", Gateway: ""}
 	for s := range locs {
 		if locs[s].Name == "" {
 			// Don't set name if it was overridden in the config file
@@ -204,8 +204,13 @@ func main() {
 	}
 	debug("Using config file '%s'", *configfile)
 	location, err := findLocation(*configfile)
-	checkError(err, "Could not find location")
-	debug("Detected location: %s", location)
+	if location == nil {
+		checkError(err, "Could not find location")
+	} else if err != nil {
+		debug("Warning - problem when detecting location, got: %s with error: %s", location, err)
+	} else {
+		debug("Detected location: %s", location)
+	}
 
 	if len(flag.Args()) != 1 {
 		checkError(fmt.Errorf("Expected 1 argument, got %d", len(flag.Args())), "")
