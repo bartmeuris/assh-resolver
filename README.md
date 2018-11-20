@@ -4,7 +4,7 @@
 
 I use this in combination with [assh](https://github.com/moul/advanced-ssh-config) as the `ResolveCommand` to use different IP's to connect to hosts, depending on the location I am to speed up connecting to a host when a possible jump-host must be used.
 
-Location detection is done by checking the default gateway, for which an external package is used.
+Location detection is done by checking the default gateway, for which an external package is used. In the future - possible other ways of detecting the location might be implemented as required.
 
 ## Configuration
 
@@ -40,7 +40,8 @@ home:
 
 As resolve command you then use the following in the assh config:
 
-    ResolveCommand: ResolveCommand: '/path/to/assh-resolver "%h"'
+    defaults:
+      ResolveCommand: '/path/to/assh-resolver "%h"'
 
 As hosts, you then specify all IP/hostnames linked with the location name in the following format:
 
