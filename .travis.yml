@@ -1,12 +1,26 @@
 language: go
-go:
-- 1.10.3
-- tip
+sudo: false
+matrix:
+  include:
+    # "1.x" always refers to the latest Go version, inc. the patch release.
+    # e.g. "1.x" is 1.11 until 1.11.1 is available.
+    - go: 1.x
+      env: LATEST=true
+    - go: 1.10.x
+    - go: 1.11.x
+    - go: tip
+  allow_failures:
+    - go: tip
+
 before_install:
-- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-- dep ensure
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - make deps
+
 script:
-- make all
+  - make
+  - make test
+  - if [ "${LATEST}" == "true" ]; then make clean all; fi
+
 deploy:
   skip_cleanup: true
   provider: releases
@@ -16,3 +30,4 @@ deploy:
   on:
     tags: true
     repo: bartmeuris/assh-resolver
+    condition: $LATEST = true

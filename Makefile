@@ -38,6 +38,10 @@ build:
 
 build_all: $(PLATFORMS)
 
+test: build
+	go vet $$(go list ./... | grep -v /vendor/)
+	go test -v -race ./...
+
 $(PLATFORMS): deps
 	CGO_ENABLED=0 GOOS=$(tos) GOARCH=$(tarch) go build $(LDFLAGS) -o '$(BINARY)_$(tos)-$(tarch)$(ext)'
 
